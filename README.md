@@ -6,9 +6,7 @@ Installation
 ==========
 
 pip install virtualenv
-
 virtualenv .env 
-
 python setup.py
 
 
