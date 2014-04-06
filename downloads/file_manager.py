@@ -3,7 +3,7 @@ from downloads import log
 
 
 class Filemanager(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     location = db.Column(db.String(256))
     filename = db.Column(db.String(128))
     isdownloaded = db.Column(db.Integer,default=0)
@@ -55,17 +55,18 @@ class Filemanager(db.Model):
             i +=  self.block
             j += 1
         self.total_sectors = j
+        self.update()
         return j
 
     
     def __repr__(self):
         f = lambda x: x == 1 and ' download complete' or ' download incomplete ' 
-        return self.filename + ' total size: ' + str(self.size) + ' block size: ' + str(self.block) + f(self.isdownloaded) 
+        return str(self.id) + ": " + self.filename + ' total size: ' + str(self.size) + ' block size: ' + str(self.block) + ' sectors:' + self.total_sectors +   f(self.isdownloaded) 
 
             
     
 class Sector(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     start = db.Column(db.Integer,default=0)
     end = db.Column(db.Integer,default=0)
     isdownloaded = db.Column(db.Integer,default=0)
@@ -87,7 +88,7 @@ class Sector(db.Model):
 
     def __repr__(self):
         f = lambda x: x == 1 and ' donwloaded' or ' not downloaded' 
-        return self.fname.location + "/" + self.fname.filename + ": " + "offset :" \
+        return str(self.id) + ": " + self.fname.location + "/" + self.fname.filename + ": " + "offset :" \
             + str(self.start) + '-' + str(self.end) +  f(self.isdownloaded)
     
     

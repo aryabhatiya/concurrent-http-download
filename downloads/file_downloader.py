@@ -2,7 +2,6 @@ import gevent
 from gevent.queue import Queue
 from gevent.pool import Group
 from gevent import monkey
-from gevent.event import AsyncResult
 # patches stdlib (including socket and ssl modules) to cooperate with other greenlets
 monkey.patch_all()
 from http_download import HttpDownload
@@ -22,7 +21,7 @@ class FileDownloader(object):
         self._service['ftp'] = self.load_ftp
         self.fileManager = Filemanager()
         self.group = Group()
-        self.message = AsyncResult()
+        self.message = Queue()
         self.total_precess = 4
 
     def config(self, **config):
@@ -58,7 +57,6 @@ class FileDownloader(object):
     def producer(self,sects):
         passed = 0
         for i in range(0,sects):
-            log("waiting ")
             msg = self.message.get()
             log("get" + msg)
         # for green in self.greenthreads:
@@ -85,11 +83,11 @@ class FileDownloader(object):
             self.filestat.writefs('1'*self.filestat.size)
   
         self.greenthreads = []
-        gevent.spawn(self.producer,self.filestat.total_sectors).join()
-      
+        self.greenthreads.append(gevent.spawn(self.producer,self.filestat.total_sectors))      
         for sector in self.filestat.sectors.all():
             self.greenthreads.append(gevent.spawn(dload.run, sector))
         
 
+    
         gevent.joinall(self.greenthreads)
         

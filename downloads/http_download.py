@@ -40,7 +40,7 @@ class HttpDownload(Download):
 #        sector.update()
 #        self.filestat.status('Partial Downloaded')
         log(sector)
-        self.msg.set(str(sector.id))
+        self.msg.put_nowait(str(sector.id))
 #        if block == filestat.split:
 #            self.filestat.wiret
         #len(content) 300
