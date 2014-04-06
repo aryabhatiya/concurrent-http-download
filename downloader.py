@@ -20,6 +20,7 @@ def arguments():
     (options, args) = parser.parse_args()
     return options
 
+
 if __name__ == '__main__':
     option = arguments()
     ''' checking for missing argument '''

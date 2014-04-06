@@ -1,6 +1,6 @@
 from downloads import db
 from downloads import log
-
+import os
 
 class Filemanager(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
@@ -12,7 +12,7 @@ class Filemanager(db.Model):
     block = db.Column(db.Integer,default=1490)
     total_sectors = db.Column(db.Integer,default=0)
     sectors = db.relationship('Sector', backref = 'fname', lazy = 'dynamic')
-    
+    partialsize = 0
     def __init__(self):
         pass
 
@@ -40,7 +40,11 @@ class Filemanager(db.Model):
         return self
 
     def writefs(self,data,offset=0):
-        with open(self.location + '/' + self.filename,'a') as f:
+        fl = self.location + '/' + self.filename
+        prm = 'w'
+        if os.path.exists(fl):
+            prm = 'r+b'            
+        with open(fl,prm) as f:
             f.seek(offset)
             f.write(data)
     
@@ -61,7 +65,11 @@ class Filemanager(db.Model):
     
     def __repr__(self):
         f = lambda x: x == 1 and ' download complete' or ' download incomplete ' 
-        return str(self.id) + ": " + self.filename + ' total size: ' + str(self.size) + ' block size: ' + str(self.block) + ' sectors:' + self.total_sectors +   f(self.isdownloaded) 
+        dratio = 0
+        if self.size:
+            dratio =  (self.partialsize*100)/self.size
+        return self.filename + ' total size: ' + str(self.size) + \
+            ' already downloaded  (' + str(dratio) + "%)" +  f(self.isdownloaded) 
 
             
     

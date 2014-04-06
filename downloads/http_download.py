@@ -28,7 +28,7 @@ class HttpDownload(Download):
             or httplib.HTTPSConnection(self.url.host)
 
         conn.request("GET", self.url.path, headers=self.http_range(sector)) 
-        log(self.http_range(sector))
+#        log(self.http_range(sector))
         resp = conn.getresponse()
         assert resp.status == 206
         assert resp.status == httplib.PARTIAL_CONTENT
@@ -39,7 +39,7 @@ class HttpDownload(Download):
 #       sector.isdownloaded = 1
 #        sector.update()
 #        self.filestat.status('Partial Downloaded')
-        log(sector)
+#        log(sector)
         self.msg.put_nowait(str(sector.id))
 #        if block == filestat.split:
 #            self.filestat.wiret

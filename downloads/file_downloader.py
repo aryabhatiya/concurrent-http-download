@@ -7,9 +7,10 @@ monkey.patch_all()
 from http_download import HttpDownload
 from ftp_download import FtpDownload
 from file_manager import Filemanager
+from file_manager import Sector
 from url import URL
 from downloads import log
-
+import random
 
 class FileDownloader(object):
     ''' scheme http / ftp '''
@@ -55,10 +56,25 @@ class FileDownloader(object):
         return HttpDownload(self._url, self.filestat, self.message)
 
     def producer(self,sects):
+        sect = Sector()
         passed = 0
         for i in range(0,sects):
-            msg = self.message.get()
-            log("get" + msg)
+            id = self.message.get()
+            completed_sector = sect.query.filter_by(id = str(id)).first()
+            completed_sector.isdownloaded = 1
+            completed_sector.update()
+#            log(completed_sector)
+            complete = True
+            partialsize = 0 
+            for sector in completed_sector.fname.sectors.all():
+                if not sector.isdownloaded: 
+                    completed = False
+                else:
+                    partialsize += sector.size
+            completed_sector.fname.partialsize = partialsize
+            completed_sector.fname.isdownloaded = complete
+            log(completed_sector.fname)
+            
         # for green in self.greenthreads:
         #     self.group.add(green)
         #     self.group.join()
@@ -71,6 +87,7 @@ class FileDownloader(object):
         """ run the corresponding service according to protocol """        
         if not self.service:
             log(str(self.filestat))
+            return False
 
         dload = self.service()
         if self.filestat.isdownloaded:
@@ -86,8 +103,6 @@ class FileDownloader(object):
         self.greenthreads.append(gevent.spawn(self.producer,self.filestat.total_sectors))      
         for sector in self.filestat.sectors.all():
             self.greenthreads.append(gevent.spawn(dload.run, sector))
-        
 
-    
         gevent.joinall(self.greenthreads)
-        
+        return True
