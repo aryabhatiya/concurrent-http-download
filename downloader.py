@@ -1,6 +1,7 @@
 #!.env/bin/python
 # parse command line argument and call file download module
 from downloads import Downloads
+import feedparser
 import sys
 from optparse import OptionParser
 
@@ -24,5 +25,6 @@ def arguments():
 if __name__ == '__main__':
     option = arguments()
     ''' checking for missing argument '''
-    Downloads.config( url = option.feed,path = option.output )
+    d = feedparser.parse(option.feed) 
+    Downloads.config( urls = [ en['link']  for en in d.entries ] , path = option.output )
     Downloads.run()

@@ -10,12 +10,12 @@ from file_manager import Filemanager
 from file_manager import Sector
 from url import URL
 from downloads import log
-import random
+from itertools import cycle
 
 class FileDownloader(object):
     ''' scheme http / ftp '''
     _service = {}
-
+    
     def __init__(self):
         ''' initiate the corresponding service according to protocol '''
         self._service['http'] = self._service['https'] = self.load_http
@@ -33,21 +33,24 @@ class FileDownloader(object):
         if not self.path:
             raise ValueError("Path is Missing")
 
-        if not self.url:
+        if not self.urls:
             raise ValueError("Uri is Missing")
-        self._url = URL(self.url)
+        self._urls = [ URL(url) for url in self.urls ]
 
         self.init_service()
 
     def init_service(self):
-        if self._url.scheme in self._service:
-            self.service = self._service[self._url.scheme] 
-            self.filestat = self.fileManager.infs(self.path, self._url.last)            
-            if not self.filestat:
-                self.filestat = self.fileManager.add(self.path, self._url.last)
-                log('New file:' + str(self.filestat))
-        else:
-            raise ValueError('protocol: ' + self.scheme + ' not supported')
+        # if self._url.scheme in self._service:
+        self.services  = [ url.scheme in self._service and self._service[url.scheme] \
+                               or None for url in self._urls ] 
+        self.filestats = [ self.fileManager.infs(self.path, url.last) or \
+                               self.fileManager.add(self.path, url.last) \
+                               for url in self._urls ]
+            # if not self.filestat:
+            #     self.filestat = self.fileManager.add(self.path, self._url.last)
+            #     log('New file:' + str(self.filestat))
+        # else:
+        #     raise ValueError('protocol: ' + self.scheme + ' not supported')
 
     def load_ftp(self):
         return FtpDownload(self._url, self.filestat, self.message)
@@ -81,10 +84,8 @@ class FileDownloader(object):
         #     passed += 1
         #     if passed > self.total_precess:           
         #         msg = self.message.get()
-                
 
-    def run(self):
-        """ run the corresponding service according to protocol """        
+    def run_url(self):
         if not self.service:
             log(str(self.filestat))
             return False
@@ -106,3 +107,14 @@ class FileDownloader(object):
 
         gevent.joinall(self.greenthreads)
         return True
+            
+
+    def run(self):
+        """ run the corresponding service according to protocol """        
+        stat = cycle(self.filestats)
+        url = cycle(self._urls)
+        for service in self.services:
+            self.service = service
+            self.filestat = next(stat)
+            self._url = next(url)
+            self.run_url()

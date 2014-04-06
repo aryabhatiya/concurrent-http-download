@@ -5,3 +5,4 @@ class FtpDownload(Download):
     
     def run(self):
         pass
+
