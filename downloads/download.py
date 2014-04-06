@@ -3,10 +3,10 @@
 
 class Download(object):
     
-    def __init__(self, url, filestat, log):
+    def __init__(self, url, filestat, msg):
         self.filestat = filestat
         self.url = url
-        self.log = log
+        self.msg = msg
 
     def isdownloaded(self):
         if self.filestat.block == self.filestat.splits:

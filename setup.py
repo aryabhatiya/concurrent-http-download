@@ -14,4 +14,5 @@ subprocess.call(["pip", "install", 'mysql-python'])
 subprocess.call(["pip", "install", 'flask'])]
 subprocess.call(["pip", "install", 'SQLAlchemy'])
 subprocess.call(["pip", "install", 'Flask-SQLAlchemy'])
+subprocess.call(["pip", "install", 'gevent'])
 #subprocess.call(["mysql"

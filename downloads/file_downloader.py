@@ -1,8 +1,16 @@
+import gevent
+from gevent.queue import Queue
+from gevent.pool import Group
+from gevent import monkey
+from gevent.event import AsyncResult
+# patches stdlib (including socket and ssl modules) to cooperate with other greenlets
+monkey.patch_all()
 from http_download import HttpDownload
 from ftp_download import FtpDownload
 from file_manager import FileManager
 from url import URL
 from downloads import log
+
 
 class FileDownloader(object):
     ''' scheme http / ftp '''
@@ -13,6 +21,9 @@ class FileDownloader(object):
         self._service['http'] = self._service['https'] = self.load_http
         self._service['ftp'] = self.load_ftp
         self.fileManager = FileManager()
+        self.group = Group()
+        self.message = AsyncResult()
+        self.total_precess = 4
 
     def config(self, **config):
         self._config = config
@@ -34,30 +45,44 @@ class FileDownloader(object):
             if not self.filestat:
                 self.service = self._service[self._url.scheme] 
                 self.filestat = self.fileManager.add(self.path, self._url.last)
-                self.filestat.status('new ' + self._url.scheme )
+                log('New file:' + self.filestat)
             else:
                 self.service = self.filestat and not self.filestat.isdownloaded \
                     and self._service[self._url.scheme] or None
-
         else:
             raise ValueError('protocol: ' + self.scheme + ' not supported')
 
     def load_ftp(self):
-        return FtpDownload(self._url, self.filestat,log)
+        return FtpDownload(self._url, self.filestat, message)
 
     def load_http(self):
-        return HttpDownload(self._url, self.filestat,log)
+        return HttpDownload(self._url, self.filestat, message)
+
+    def producer(self):
+        passed = 0
+        for green in self.greenthreads:
+            self.group.add(green)
+            self.group.join()
+            passed += 1
+            if passed > self.total_precess:           
+                msg = self.message.get()
+                
 
     def run(self):
         """ run the corresponding service according to protocol """        
         if not self.service:
-            self.filestat.status('already downloaded')
+            log(self.filestat)
+
         dload = self.service()        
         dload.filesize()
-        self.filestat.status('filesize')
+        self.filestat.add_sectors()
+        self.filestat.writefs(1*self.filestat.size)
+        log(self.filestat)
+        gevent.spawn(producer).join()
+        self.greenthreads = []
         
-        for i in range(self.filestat.partial,self.filestat.splits):
-            dload.run(i)
-            self.filestat.partial = i+1
-            self.filestat.update()
-            self.filestat.status('Partial Downloaded')
+        for sector in filestat.sectors.all():
+            self.greenthreads.append(gevent.spawn(dload.run, sector))
+
+        gevent.joinall(greenthreads)
+        

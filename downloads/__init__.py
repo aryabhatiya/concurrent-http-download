@@ -1,5 +1,10 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+import gevent
+from gevent import monkey
+
+# patches stdlib (including socket and ssl modules) to cooperate with other greenlets
+monkey.patch_all()
 
 app = Flask(__name__)
 app.config.from_object('config')

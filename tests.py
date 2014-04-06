@@ -14,5 +14,6 @@ class TestCase(unittest.TestCase):
         assert Downloads._url.host == 'dl.dropboxusercontent.com'
         assert Downloads._url.last == 'downloads.rss'
 
+
 if __name__ == '__main__':
         unittest.main()

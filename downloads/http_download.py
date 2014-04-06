@@ -1,9 +1,9 @@
 from download import Download
 import httplib
-
+from downloads import log
 class HttpDownload(Download):
-    def __init__(self, url, filestat, log):
-        super(HttpDownload, self).__init__(url, filestat, log)
+    def __init__(self, url, filestat, msg):
+        super(HttpDownload, self).__init__(url, filestat, msg)
 #        Download.__init__(url, filestat, log)
 #        self.port = len(self.url.host.split(":")) > 0 and self.url.host.split(":")[1] or 0 
         self.port = 0
@@ -25,7 +25,7 @@ class HttpDownload(Download):
         range = 'bytes=' + str(lower) + '-' + str(upper)
         return { 'Range': range }
 
-    def run(self,block):        
+    def run(self,sector):        
         self.conn = self.port and httplib.HTTPSConnection(self.url.host.split(":")[0],self.port) \
             or httplib.HTTPSConnection(self.url.host)
 
@@ -38,7 +38,12 @@ class HttpDownload(Download):
         # >>> resp.getheader('content-range')
         # 'bytes 0-299/612'
         content = resp.read()
-        self.filestat.writefs(content)
+        self.filestat.writefs(content,sector.start)
+        self.sector.isdownloaded = 1
+        self.sector.update()
+#        self.filestat.status('Partial Downloaded')
+        log(sector)
+        self.msg.set(self.sector.id)
 #        if block == filestat.split:
 #            self.filestat.wiret
         #len(content) 300
