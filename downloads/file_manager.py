@@ -1,6 +1,8 @@
 from downloads import db
-#from downloads import log
-class FileManager(db.Model):
+from downloads import log
+
+
+class Filemanager(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location = db.Column(db.String(256))
     filename = db.Column(db.String(128))
@@ -8,7 +10,7 @@ class FileManager(db.Model):
     splits = db.Column(db.Integer,default=10)
     size = db.Column(db.Integer,default=0)
     block = db.Column(db.Integer,default=1490)
-    sectors = db.relationship('sector', backref = 'fname', lazy = 'dynamic')
+    sectors = db.relationship('Sector', backref = 'fname', lazy = 'dynamic')
     
     def __init__(self):
         pass
@@ -45,46 +47,44 @@ class FileManager(db.Model):
         i = 0
         j = 0
         while i <= self.size:
-            end = i + self.bock
-            if  end > self.size:
+            end = i + self.block
+            if  end >= self.size:
                 end = self.size
-            Sectors.add(i,end,self)
-            j = j + 1
+            Sector.add(i,end,self)
+            i +=  self.block
         return j
 
     
     def __repr__(self):
-        f = lambda x: x == 1 and 'donwloaded' or 'not downloaded' 
-        return self.filename + ' total size: ' + str(self.size) + f(self.downloaded) 
+        f = lambda x: x == 1 and ' download complete' or ' download incomplete ' 
+        return self.filename + ' total size: ' + str(self.size) + ' block size: ' + str(self.block) + f(self.isdownloaded) 
 
             
-class Sectors(db):
+    
+class Sector(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start = db.Column(db.Integer,default=0)
     end = db.Column(db.Integer,default=0)
     isdownloaded = db.Column(db.Integer,default=0)
     size = db.Column(db.Integer,default=0)
-    user_id = db.Column(db.Integer, db.ForeignKey('filemanager.id'))
+    file_id = db.Column(db.Integer, db.ForeignKey('filemanager.id'))
     
-    def __init__(self):
-        pass
 
     def update(self):
         db.session.add(self)
         db.session.commit()
         return self
 
-    @staticmethod
+    @classmethod
     def add(self,start,end,filestat):
-        sec = Sectors(start = start, end = end , size = end - start, fname = filestat)
+        sec = Sector(start = start, end = end , size = end - start, fname = filestat)
         db.session.add(sec)
         db.session.commit()
         return sec
 
     def __repr__(self):
         f = lambda x: x == 1 and ' donwloaded' or ' not downloaded' 
-        return fname.location + "/" + fname.filename + ": " + "offset :" \
-            + str(self.start) + '-' + self.end +  f(self.isdownloaded)
-    
+        return self.fname.location + "/" + self.fname.filename + ": " + "offset :" \
+            + str(self.start) + '-' + str(self.end) +  f(self.isdownloaded)
     
     
