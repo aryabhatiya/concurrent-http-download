@@ -41,14 +41,11 @@ class FileDownloader(object):
 
     def init_service(self):
         if self._url.scheme in self._service:
-            self.filestat = self.fileManager.infs(self.path, self._url.last)
+            self.service = self._service[self._url.scheme] 
+            self.filestat = self.fileManager.infs(self.path, self._url.last)            
             if not self.filestat:
-                self.service = self._service[self._url.scheme] 
                 self.filestat = self.fileManager.add(self.path, self._url.last)
                 log('New file:' + str(self.filestat))
-            else:
-                self.service = self.filestat and not self.filestat.isdownloaded \
-                    and self._service[self._url.scheme] or None
         else:
             raise ValueError('protocol: ' + self.scheme + ' not supported')
 
@@ -58,14 +55,18 @@ class FileDownloader(object):
     def load_http(self):
         return HttpDownload(self._url, self.filestat, self.message)
 
-    def producer(self):
+    def producer(self,sects):
         passed = 0
-        for green in self.greenthreads:
-            self.group.add(green)
-            self.group.join()
-            passed += 1
-            if passed > self.total_precess:           
-                msg = self.message.get()
+        for i in range(0,sects):
+            log("waiting ")
+            msg = self.message.get()
+            log("get" + msg)
+        # for green in self.greenthreads:
+        #     self.group.add(green)
+        #     self.group.join()
+        #     passed += 1
+        #     if passed > self.total_precess:           
+        #         msg = self.message.get()
                 
 
     def run(self):
@@ -73,18 +74,22 @@ class FileDownloader(object):
         if not self.service:
             log(str(self.filestat))
 
-        dload = self.service()        
-        dload.filesize()
-        log(str(self.filestat))
-        self.filestat.add_sectors()
-        self.filestat.writefs('1'*self.filestat.size)
+        dload = self.service()
+        if self.filestat.isdownloaded:
+            return
 
+        if self.filestat.size == 0:   
+            dload.filesize()
+            log(str(self.filestat))
+            self.filestat.add_sectors()
+            self.filestat.writefs('1'*self.filestat.size)
   
         self.greenthreads = []
-        
+        gevent.spawn(self.producer,self.filestat.total_sectors).join()
+      
         for sector in self.filestat.sectors.all():
             self.greenthreads.append(gevent.spawn(dload.run, sector))
         
-        gevent.spawn(self.producer).join()
-        gevent.joinall(greenthreads)
+
+        gevent.joinall(self.greenthreads)
         

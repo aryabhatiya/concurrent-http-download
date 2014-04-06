@@ -10,6 +10,7 @@ class Filemanager(db.Model):
     splits = db.Column(db.Integer,default=10)
     size = db.Column(db.Integer,default=0)
     block = db.Column(db.Integer,default=1490)
+    total_sectors = db.Column(db.Integer,default=0)
     sectors = db.relationship('Sector', backref = 'fname', lazy = 'dynamic')
     
     def __init__(self):
@@ -52,6 +53,8 @@ class Filemanager(db.Model):
                 end = self.size
             Sector.add(i,end,self)
             i +=  self.block
+            j += 1
+        self.total_sectors = j
         return j
 
     
