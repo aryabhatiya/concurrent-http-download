@@ -11,7 +11,7 @@ virtualenv .env
 
 python setup.py
 
-
+python db_create.py
 
 
 
