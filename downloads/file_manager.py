@@ -119,9 +119,9 @@ class Sector(db.Model):
         return sec
 
     def name(self):
-        return "." + str(self.id)  + self.fname.name()
+        return self.fname.location + "/." + str(self.id) + "_" + self.fname.filename
 
-    def write(self):
+    def write(self,data):
         with open(self.name(),"w") as f:
             f.write(data)
  

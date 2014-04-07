@@ -38,7 +38,7 @@ class HttpDownload(Download):
         # >>> resp.getheader('content-range')
         # 'bytes 0-299/612'
             content = resp.read()
-            self.sector.write(content)
+            sector.write(content)
 #       sector.isdownloaded = 1
 #        sector.update()
 #        self.filestat.status('Partial Downloaded')

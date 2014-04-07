@@ -66,7 +66,7 @@ class FileDownloader(object):
             if int(id) < 0:
                 continue
             completed_sector = sect.query.filter_by(id = int(id)).first()
-            completed_sector.write()
+#            completed_sector.write()
             completed_sector.isdownloaded = 1
             completed_sector.update()
             log2(completed_sector)

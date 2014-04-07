@@ -10,7 +10,7 @@ else:
     bin = 'bin'
 
 subprocess.call(["pip", "install", 'pep8'])
-subprocess.call(["pip", "install", 'mysql-python'])
+#subprocess.call(["pip", "install", 'mysql-python'])
 subprocess.call(["pip", "install", 'flask'])
 subprocess.call(["pip", "install", 'SQLAlchemy'])
 subprocess.call(["pip", "install", 'Flask-SQLAlchemy'])
