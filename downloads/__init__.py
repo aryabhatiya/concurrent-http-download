@@ -13,8 +13,8 @@ db =SQLAlchemy(app)
 import logging
 from logging.handlers import RotatingFileHandler
 file_handler = RotatingFileHandler('tmp/downloads.log', 'a', 1 * 1024 * 1024, 10)
-#[in %(pathname)s:%(lineno)d]
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s '))
+#
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 app.logger.setLevel(logging.DEBUG)
 file_handler.setLevel(logging.DEBUG)
 app.logger.addHandler(file_handler)

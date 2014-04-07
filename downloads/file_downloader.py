@@ -9,7 +9,7 @@ from ftp_download import FtpDownload
 from file_manager import Filemanager
 from file_manager import Sector
 from url import URL
-from downloads import log
+from downloads import log , log2
 from itertools import cycle
 
 class FileDownloader(object):
@@ -63,9 +63,13 @@ class FileDownloader(object):
         passed = 0
         for i in range(0,sects):
             id = self.message.get()
-            completed_sector = sect.query.filter_by(id = str(id)).first()
+            if int(id) < 0:
+                continue
+            completed_sector = sect.query.filter_by(id = int(id)).first()
+            completed_sector.write()
             completed_sector.isdownloaded = 1
             completed_sector.update()
+            log2(completed_sector)
 #            log(completed_sector)
             complete = True
             partialsize = 0 
@@ -75,7 +79,9 @@ class FileDownloader(object):
                 else:
                     partialsize += sector.size
             completed_sector.fname.partialsize = partialsize
-            completed_sector.fname.isdownloaded = complete
+            if complete:
+                completed_sector.fname.isdownloaded = 1 
+                self.greenthreads.append(gevent.spawn(completed_sector.fname.merge_sectors()))
             log(completed_sector.fname)
             
         # for green in self.greenthreads:
@@ -86,22 +92,28 @@ class FileDownloader(object):
         #         msg = self.message.get()
 
     def run_url(self):
+        log2("Running ..." + self._url.path)
+
         if not self.service:
-            log(str(self.filestat))
+            log("Protocol not exists: " +  str(self.filestat) + " !")
             return False
 
         dload = self.service()
         if self.filestat.isdownloaded:
+            log("File Already exists: " +  str(self.filestat) + " !")
             return
-
+        
         if self.filestat.size == 0:   
             dload.filesize()
-            log(str(self.filestat))
+            log("File Size Downloaded: " + str(self.filestat))
             self.filestat.add_sectors()
-            self.filestat.writefs('1'*self.filestat.size)
-  
+            log2("sectors added: " + str(self.filestat))
+#            self.filestat.writefs('1'*self.filestat.size)
+            
         self.greenthreads = []
         self.greenthreads.append(gevent.spawn(self.producer,self.filestat.total_sectors))      
+        log2("producer: ....")
+
         for sector in self.filestat.sectors.all():
             self.greenthreads.append(gevent.spawn(dload.run, sector))
 

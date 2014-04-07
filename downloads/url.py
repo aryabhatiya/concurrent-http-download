@@ -15,12 +15,18 @@ class URL(object):
         # m = URL._syntax.match(value)
         # if not m: raise ValueError('Invalid URI(' + value + ')')
         # self.scheme, self.user, self.password, self.host, self.port, body = m.groups()
-        url = urlparse(value)
-        self.scheme = url.scheme
-        self.host = url.netloc
-        self.path = url.path
-        self.paths = [nv for nv in url.path.split('/')] if url.path else []
+        self.url1 = urlparse(value) 
+        self.scheme=self.url1.scheme
+        self.netloc=self.url1.netloc
+        self.path=self.url1.path
+        self.host = self.netloc
+# params='', query='', fragment=''
+ 
+        self.paths = [nv for nv in self.path.split('/')] if self.path else []
         if len(self.paths):
             self.last = self.paths[-1]
         else:
             self.last = self.url.netloc
+
+    def __repr__(self):
+        return str(self.url1)
