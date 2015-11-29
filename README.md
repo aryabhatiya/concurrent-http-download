@@ -7,7 +7,7 @@ The program will receive two inputs:
 1. The URL of an RSS Feed containing links to the files to be downloaded (a sample is given below)
 2. The path to the directory where the downloaded files are going to be stored is
 
-python downloader.py --feed=<RSS-Feed-URL> --output=<PATH-TO-DIRECTORY>
+python downloader.py --feed=RSS-Feed-URL --output=PATH-TO-DIRECTORY
 
 Features
 =========
